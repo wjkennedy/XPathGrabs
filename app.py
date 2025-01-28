@@ -6,14 +6,18 @@ from selenium.webdriver.chrome.options import Options
 import os
 import time
 
-def capture_screenshot_with_xpath(url, token, xpaths, output_dir="screenshots"):
-    # Configure Chrome WebDriver
+
+
+def capture_screenshot_with_xpath(url, username, token, xpaths, output_dir="screenshots"):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument(f"--header=Authorization: Bearer {token}")
+
+    # Add Authorization header (username:token as Base64 for Basic Auth)
+    auth_string = f"{username}:{token}"
+    chrome_options.add_argument(f"--header=Authorization: Basic {auth_string}")
 
     # Initialize WebDriver
     service = Service("/usr/bin/chromedriver")
@@ -48,9 +52,12 @@ def capture_screenshot_with_xpath(url, token, xpaths, output_dir="screenshots"):
 st.title("XPath-Based Screenshot Tool")
 
 # Inputs from the user
+
+# Streamlit App
 st.sidebar.header("Inputs")
 url = st.sidebar.text_input("Website URL", "https://example.com")
-token = st.sidebar.text_input("Personal Access Token (Optional)", "")
+username = st.sidebar.text_input("Username/Email", "your_username")
+token = st.sidebar.text_input("Personal Access Token", type="password")
 xpaths = st.sidebar.text_area(
     "XPaths (one per line)", 
     "//div[@id='example-id']\n//span[contains(text(), 'Example Text')]"
@@ -61,7 +68,8 @@ output_dir = "screenshots"
 if st.sidebar.button("Capture Screenshots"):
     st.info("Processing...")
     xpaths_list = xpaths.splitlines()
-    results = capture_screenshot_with_xpath(url, token, xpaths_list, output_dir)
+    results = capture_screenshot_with_xpath(url, username, token, xpaths_list, output_dir)
+
 
     # Display results
     for result in results:
